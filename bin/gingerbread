@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 process.title = 'gingerbread';
 
 var Gingerbread = require('../'),
@@ -15,10 +14,20 @@ Program
   .usage('[options] <text ...>')
   .parse(process.argv);
 
-var texts = Program.args;
-
-if (texts.length) {
-  texts.forEach(parseText);
+if (process.stdin.isTTY) {
+  Program.args.forEach(parseText);
+} else {
+  var texts = "";
+  process.stdin.setEncoding('utf8');
+  process.stdin.on('data', function(d) {
+    texts += d;
+  });
+  process.stdin.on('end', function() {
+    texts = texts.replace(/\n$/, '');
+    if (texts.length) {
+      parseText(texts);
+    }
+  });
 }
 
 function parseText(text) {
